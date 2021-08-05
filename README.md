@@ -1,4 +1,5 @@
 # DutyToggle
+![](images/dutytoggle.png)
 plugin exclusively for BlockstackersMC by Junny
 
 This plugin is made to make lives of being a staff member less stressful than it already is.
