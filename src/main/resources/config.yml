@@ -1,0 +1,27 @@
+messages:
+  no-permissions: "&cYou don't have permission for this!"
+  not-on-duty: "&cYou are not on duty!"
+  on-duty: "&eYou are now on duty"
+  not-off-duty: "&cYou are not off duty!"
+  off-duty: "&eYou are now off duty"
+  mail-off-leave: "%player% is no longer on leave, they are now back."
+  mail-on-leave: "%player% is now on leave."
+  off-leave: "&eYou are now off leave"
+  not-on-leave: "&cYou are not on leave!"
+  on-leave: "&eYou are now on leave"
+  not-off-leave: "&cYou are not off leave!"
+off-duty-group: default
+staff-groups:
+- management
+- asstmanagement
+- headadmin
+- admin
+- dev
+- srmoderator
+- moderator
+- helper
+- trainee
+mail-players:
+  - BearyBad
+  - naanthebread
+  - SugarKhoo
