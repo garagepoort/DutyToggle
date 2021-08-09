@@ -2,6 +2,7 @@ name: DutyToggle
 version: ${project.version}
 main: me.junny.dutytoggle.DutyToggle
 api-version: 1.16
+depend: [LuckPerms]
 commands:
   onduty:
     description: Go on duty

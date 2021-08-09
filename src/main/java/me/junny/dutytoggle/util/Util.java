@@ -2,6 +2,7 @@ package me.junny.dutytoggle.util;
 
 import me.junny.dutytoggle.DutySession;
 import me.junny.dutytoggle.DutyToggle;
+import me.junny.dutytoggle.repository.SessionRepository;
 import net.luckperms.api.model.group.Group;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.types.InheritanceNode;
@@ -15,13 +16,16 @@ import java.util.List;
 import java.util.UUID;
 
 public class Util {
+
+    private static final SessionRepository sessionRepository = SessionRepository.instance();
+    private static FileManager fileManager = FileManager.instance();
+
     public static String color(String string) {
         return ChatColor.translateAlternateColorCodes('&', string);
     }
 
     public static String getMessage(String id) {
-        FileManager fm = new FileManager(DutyToggle.plugin);
-        return color(fm.getConfig("config.yml").get().getString("messages." + id));
+        return color(fileManager.getConfig("config.yml").get().getString("messages." + id));
     }
 
     public static User getPlayerAsUser(Player player) {
@@ -65,57 +69,58 @@ public class Util {
     }
 
     public static DutySession getSession(OfflinePlayer player) {
-        for(DutySession session : DutyToggle.sessions) {
-            if(session.player.equals(player)) return session;
-        }
-        return null;
+        return sessionRepository.getSession(player.getUniqueId()).orElse(null);
     }
 
     public static boolean isOnLeave(OfflinePlayer player) {
         DutySession session = getSession(player);
 
-        if(session == null) return false;
+        if (session == null) return false;
         return session.back != 0L;
     }
 
     public static boolean isOffDuty(OfflinePlayer player) {
         DutySession session = getSession(player);
 
-        if(session == null) return false;
+        if (session == null) return false;
         return session.back == 0L;
     }
 
     public static void onDuty(OfflinePlayer player) {
-        setGroup(player.getUniqueId(), getSession(player).group);
-        DutyToggle.sessions.remove(getSession(player));
-        saveSessions();
+        DutySession session = getSession(player);
+        setGroup(player.getUniqueId(), getGroup(session.groupName));
+        sessionRepository.deleteSession(player.getUniqueId());
     }
 
     public static void offDuty(OfflinePlayer player) {
-        DutyToggle.sessions.add(new DutySession(player, getGroup(player.getUniqueId())));
+        DutySession dutySession = new DutySession(player, getGroup(player.getUniqueId()).getName());
         setGroup(player.getUniqueId(), DutyToggle.offDutyGroup);
-        saveSessions();
+        sessionRepository.saveSession(dutySession);
     }
 
     public static void onLeave(OfflinePlayer player, int days) {
-        DutyToggle.sessions.add(new DutySession(player, getGroup(player.getUniqueId()), System.currentTimeMillis()+86400000));
+        long daysInMilli = days * 86400000L;
+        DutySession dutySession = new DutySession(player, getGroup(player.getUniqueId()).getName(), System.currentTimeMillis() + daysInMilli);
+        sessionRepository.saveSession(dutySession);
         setGroup(player.getUniqueId(), DutyToggle.offDutyGroup);
-        saveSessions();
-
         mailPlayers(getMessage("mail-on-leave").replace("%player%", player.getName()));
     }
 
     public static void offLeave(OfflinePlayer player) {
-        setGroup(player.getUniqueId(), getSession(player).group);
-        DutyToggle.sessions.remove(getSession(player));
-        saveSessions();
+        DutySession dutySession = sessionRepository.getSession(player.getUniqueId())
+                .orElseThrow(() -> new RuntimeException("No session found for user [" + player.getName() + "]"));
+        offLeave(player, dutySession.groupName);
+    }
+
+    public static void offLeave(OfflinePlayer player, String groupName) {
+        setGroup(player.getUniqueId(), getGroup(groupName));
+        sessionRepository.deleteSession(player.getUniqueId());
 
         mailPlayers(getMessage("mail-off-leave").replace("%player%", player.getName()));
     }
 
     public static List<Player> getMailPlayers() {
-        FileManager fm = new FileManager(DutyToggle.plugin);
-        List<String> playerIds = fm.getConfig("config.yml").get().getStringList("mail-players");
+        List<String> playerIds = fileManager.getConfig("config.yml").get().getStringList("mail-players");
 
         List<Player> players = new ArrayList<>();
         playerIds.forEach(it -> players.add(Bukkit.getPlayer(it)));
@@ -124,53 +129,19 @@ public class Util {
     }
 
     public static void mailPlayers(String msg) {
-        for(Player player : getMailPlayers()) {
+        //This won't work because there is no actual command being executed.
+        for (Player player : getMailPlayers()) {
             Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), msg);
         }
     }
 
-    public static List<DutySession> loadSessions() {
-        FileManager fm = new FileManager(DutyToggle.plugin);
-        List<DutySession> sessions = new ArrayList<>();
-
-        if(fm.getConfig("config.yml").get().contains("data")) {
-            for(String uuid : fm.getConfig("config.yml").get().getConfigurationSection("data").getKeys(false)) {
-                OfflinePlayer player = Bukkit.getOfflinePlayer(UUID.fromString(uuid));
-                Group group = getGroup(fm.getConfig("config.yml").get().getString("data." + uuid + ".group"));
-
-                if(fm.getConfig("config.yml").get().contains("data." + uuid + ".back")) {
-                    long back = fm.getConfig("config.yml").get().getLong("data." + uuid + ".back");
-                    sessions.add(new DutySession(player, group, back));
-                } else {
-                    sessions.add(new DutySession(player, group));
-                }
-            }
-        }
-
-        return sessions;
-    }
-
-    public static void saveSessions() {
-        FileManager fm = new FileManager(DutyToggle.plugin);
-
-        fm.getConfig("config.yml").get().set("data", null);
-        fm.saveConfig("config.yml");
-
-        for(DutySession session : DutyToggle.sessions) {
-            fm.getConfig("config.yml").get().set("data." + session.player.getUniqueId().toString() + ".group", session.group.getName());
-            if(session.back != 0L) fm.getConfig("config.yml").get().set("data." + session.player.getUniqueId().toString() + ".back", session.back);
-            fm.saveConfig("config.yml");
-        }
-    }
-
     public static boolean isStaff(Player player) {
-        FileManager fm = new FileManager(DutyToggle.plugin);
-        List<String> groupIds = fm.getConfig("config.yml").get().getStringList("staff-groups");
+        List<String> groupIds = fileManager.getConfig("config.yml").get().getStringList("staff-groups");
 
         List<Group> groups = new ArrayList<>();
         groupIds.forEach(it -> groups.add(getGroup(it)));
 
-        if(!groups.contains(getGroup(player))) {
+        if (!groups.contains(getGroup(player))) {
             return player.hasPermission("dutytoggle.staff");
         } else {
             return true;

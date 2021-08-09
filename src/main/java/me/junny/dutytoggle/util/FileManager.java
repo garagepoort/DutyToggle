@@ -1,5 +1,6 @@
 package me.junny.dutytoggle.util;
 
+import me.junny.dutytoggle.DutyToggle;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -9,19 +10,30 @@ import java.util.HashMap;
 
 public class FileManager {
 
+    private static FileManager INSTANCE;
     private final JavaPlugin plugin;
-    private HashMap<String, Config>    configs    = new HashMap<String, Config>();
+    private final HashMap<String, Config> configs = new HashMap<String, Config>();
 
-    public FileManager(JavaPlugin plugin)
+    private FileManager(JavaPlugin plugin)
     {
         this.plugin = plugin;
+    }
+
+    /**
+     * Create a singleton of the filemanager as it holds the state of the config files.
+     * This way the configs hashmap is only instantiated once, and not everytime we do `new FileManager()`
+     */
+    public static FileManager instance() {
+        if(INSTANCE == null) {
+            INSTANCE = new FileManager(DutyToggle.plugin);
+        }
+        return INSTANCE;
     }
 
     /**
      * Get the config by the name(Don't forget the .yml)
      *
      * @param name
-     * @return
      */
     public Config getConfig(String name) {
         if (!configs.containsKey(name))
@@ -34,7 +46,6 @@ public class FileManager {
      * Save the config by the name(Don't forget the .yml)
      *
      * @param name
-     * @return
      */
     public Config saveConfig(String name) {
         return getConfig(name).save();
