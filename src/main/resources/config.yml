@@ -25,3 +25,10 @@ mail-players:
   - BearyBad
   - naanthebread
   - SugarKhoo
+
+database:
+  host: 'localhost'
+  user: 'root'
+  database: 'root'
+  password: 'mypass'
+  port: 3306
