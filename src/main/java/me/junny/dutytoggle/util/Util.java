@@ -130,12 +130,9 @@ public class Util {
         }
 
         List<String> groupIds = fileManager.getConfig("config.yml").get().getStringList("staff-groups");
-        List<Group> groups = new ArrayList<>();
-        groupIds.forEach(it -> groups.add(getGroup(it)));
 
         User playerAsUser = DutyToggle.api.getUserManager().loadUser(player.getUniqueId()).join();
         String primaryGroup = playerAsUser.getPrimaryGroup();
-
-        return groups.contains(getGroup(primaryGroup));
+        return groupIds.contains(primaryGroup);
     }
 }
