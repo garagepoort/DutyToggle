@@ -10,26 +10,26 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class StaffStatusCommand implements CommandExecutor {
+
+    private static final String BLOCKSTACKERS_STAFF = "blockstackers.staff";
+
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (cmd.getName().equalsIgnoreCase("staffstatus")) {
 
             BungeeClient.instance().getPlayers(sender, (allPlayers) ->
                     Bukkit.getScheduler().runTaskAsynchronously(DutyToggle.plugin, () -> {
+                        List<String> staffNames = Util.getAllStaffUsers();
                         List<DutySession> sessions = SessionRepository.instance().getAllSessions();
 
-                        List<OfflinePlayer> onDuty = Arrays.stream(allPlayers)
-                                .filter(p -> sessions.stream().noneMatch(s -> s.player.getName().equals(p)))
-                                .map(Bukkit::getOfflinePlayer)
-                                .filter(Util::isStaff)
+                        List<String> onDuty = Arrays.stream(allPlayers)
+                                .filter(s -> staffNames.stream().anyMatch(staff -> staff.equalsIgnoreCase(s)))
                                 .collect(Collectors.toList());
 
                         List<OfflinePlayer> offDuty = sessions.stream()
@@ -41,8 +41,8 @@ public class StaffStatusCommand implements CommandExecutor {
                                 .collect(Collectors.toList());
 
                         sender.sendMessage(Util.color("&eOn duty:"));
-                        for (OfflinePlayer player : onDuty) {
-                            sender.sendMessage(Util.color("&7" + player.getName()));
+                        for (String player : onDuty) {
+                            sender.sendMessage(Util.color("&7" + player));
                         }
 
                         sender.sendMessage(Util.color(" "));
@@ -56,8 +56,9 @@ public class StaffStatusCommand implements CommandExecutor {
                         for (OfflinePlayer player : onLeave) {
                             sender.sendMessage(Util.color("&7" + player.getName()));
                         }
-                    }));
 
+                    })
+            );
         }
         return false;
     }
