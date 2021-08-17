@@ -48,7 +48,7 @@ public final class DutyToggle extends JavaPlugin {
             @Override
             public void run() {
                 List<DutySession> allSessions = SessionRepository.instance().getExpiredSessions();
-                allSessions.forEach(s -> Util.offLeave(s.player, s.groupName));
+                allSessions.forEach(s -> Util.offLeave(s.player));
             }
         }.runTaskTimer(this, 0, 200);
     }
