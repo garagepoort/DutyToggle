@@ -1,5 +1,6 @@
 package me.junny.dutytoggle;
 
+import me.junny.dutytoggle.bungee.BungeeClient;
 import me.junny.dutytoggle.commands.*;
 import me.junny.dutytoggle.repository.DatabaseMigrator;
 import me.junny.dutytoggle.repository.SessionRepository;
@@ -35,6 +36,8 @@ public final class DutyToggle extends JavaPlugin {
         DatabaseMigrator.executeMigrations();
 
         offDutyGroup = Util.getGroup(FileManager.instance().getConfig("config.yml").get().getString("off-duty-group"));
+        Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(DutyToggle.plugin, BungeeClient.BUNGEE_CORD_CHANNEL);
+        Bukkit.getServer().getMessenger().registerIncomingPluginChannel(DutyToggle.plugin, BungeeClient.BUNGEE_CORD_CHANNEL, BungeeClient.instance());
 
         // REGISTER COMMANDS
         getCommand("onduty").setExecutor(new OnDutyCommand());

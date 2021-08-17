@@ -124,7 +124,7 @@ public class Util {
         }
     }
 
-    public static boolean isStaff(Player player) {
+    public static boolean isStaff(OfflinePlayer player) {
         if(sessionRepository.getSession(player.getUniqueId()).isPresent()) {
             return true;
         }
@@ -133,12 +133,9 @@ public class Util {
         List<Group> groups = new ArrayList<>();
         groupIds.forEach(it -> groups.add(getGroup(it)));
 
-        String primaryGroup = getPlayerAsUser(player).getPrimaryGroup();
+        User playerAsUser = DutyToggle.api.getUserManager().loadUser(player.getUniqueId()).join();
+        String primaryGroup = playerAsUser.getPrimaryGroup();
 
-        if (!groups.contains(getGroup(primaryGroup))) {
-            return player.hasPermission("dutytoggle.staff");
-        } else {
-            return true;
-        }
+        return groups.contains(getGroup(primaryGroup));
     }
 }
