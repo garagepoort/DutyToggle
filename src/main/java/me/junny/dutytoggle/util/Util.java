@@ -126,12 +126,12 @@ public class Util {
         }
     }
 
-    public static boolean isStaff(OfflinePlayer player) {
+    public static boolean isStaff(Player player) {
         if (sessionRepository.getSession(player.getUniqueId()).isPresent()) {
             return true;
         }
 
-        return PermissionService.instance().has(player, "blockstackers.staff");
+        return player.hasPermission("blockstackers.staff");
     }
 
     public static List<String> getAllStaffUsers() {
