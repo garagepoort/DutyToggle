@@ -2,6 +2,7 @@ package me.junny.dutytoggle.util;
 
 import me.junny.dutytoggle.DutySession;
 import me.junny.dutytoggle.DutyToggle;
+import me.junny.dutytoggle.repository.LuckPermsRepository;
 import me.junny.dutytoggle.repository.SessionRepository;
 import net.luckperms.api.model.group.Group;
 import net.luckperms.api.model.user.User;
@@ -13,6 +14,7 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class Util {
 
@@ -124,18 +126,19 @@ public class Util {
         }
     }
 
-    public static boolean isStaff(OfflinePlayer player) {
-        if(sessionRepository.getSession(player.getUniqueId()).isPresent()) {
+    public static boolean isStaff(Player player) {
+        if (sessionRepository.getSession(player.getUniqueId()).isPresent()) {
             return true;
         }
 
-        List<String> groupIds = fileManager.getConfig("config.yml").get().getStringList("staff-groups");
-        List<Group> groups = new ArrayList<>();
-        groupIds.forEach(it -> groups.add(getGroup(it)));
+        return player.hasPermission("blockstackers.staff");
+    }
 
-        User playerAsUser = DutyToggle.api.getUserManager().loadUser(player.getUniqueId()).join();
-        String primaryGroup = playerAsUser.getPrimaryGroup();
+    public static List<String> getAllStaffUsers() {
+        List<String> groupIds = fileManager.getConfig("config.yml").get().getStringList("staff-groups")
+                .stream().map(g -> "group." + g).collect(Collectors.toList());
 
-        return groups.contains(getGroup(primaryGroup));
+        // Search all users for a match
+        return LuckPermsRepository.instance().getAllNamesWithPrimaryGroup(groupIds);
     }
 }
