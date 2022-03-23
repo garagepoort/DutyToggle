@@ -1,30 +1,38 @@
 package me.junny.dutytoggle.commands;
 
-import me.junny.dutytoggle.util.Util;
+import be.garagepoort.mcioc.IocBean;
+import be.garagepoort.mcioc.IocCommandHandler;
+import me.junny.dutytoggle.util.DutyService;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+@IocBean
+@IocCommandHandler("offleave")
 public class OffLeaveCommand implements CommandExecutor {
+    private final DutyService dutyService;
+
+    public OffLeaveCommand(DutyService dutyService) {
+        this.dutyService = dutyService;
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if(cmd.getName().equalsIgnoreCase("offleave")) {
-            if(sender instanceof Player) {
-                Player player = (Player) sender;
+        if (sender instanceof Player) {
+            Player player = (Player) sender;
 
-                if(Util.isStaff(player)) {
-                    if(Util.isOnLeave(player)) {
-                        Util.offLeave(player);
-                        sender.sendMessage(Util.getMessage("off-leave"));
-                    } else {
-                        sender.sendMessage(Util.getMessage("not-on-leave"));
-                    }
+            if (dutyService.isStaff(player)) {
+                if (dutyService.isOnLeave(player)) {
+                    dutyService.offLeave(player);
+                    sender.sendMessage(dutyService.getMessage("off-leave"));
                 } else {
-                    sender.sendMessage(Util.getMessage("no-permissions"));
+                    sender.sendMessage(dutyService.getMessage("not-on-leave"));
                 }
+            } else {
+                sender.sendMessage(dutyService.getMessage("no-permissions"));
             }
         }
-        return false;
+        return true;
     }
 }

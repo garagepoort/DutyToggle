@@ -1,5 +1,7 @@
 package me.junny.dutytoggle.bungee;
 
+import be.garagepoort.mcioc.IocBean;
+import be.garagepoort.mcioc.IocMessageListener;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
@@ -16,18 +18,12 @@ import java.util.function.Consumer;
 
 import static com.google.common.io.ByteStreams.newDataOutput;
 
+@IocBean
+@IocMessageListener(channel = BungeeClient.BUNGEE_CORD_CHANNEL)
 public class BungeeClient implements PluginMessageListener {
 
     public static final String BUNGEE_CORD_CHANNEL = "BungeeCord";
-    private static final BungeeClient instance = new BungeeClient();
     private final List<Consumer<String[]>> receiveHandlers = new ArrayList<>();
-
-    private BungeeClient() {
-    }
-
-    public static BungeeClient instance() {
-        return instance;
-    }
 
     public void getPlayers(CommandSender sender, Consumer<String[]> onPlayersReceived) {
         Player player = null;

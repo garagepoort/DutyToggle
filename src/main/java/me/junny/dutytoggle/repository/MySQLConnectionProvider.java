@@ -1,49 +1,51 @@
 package me.junny.dutytoggle.repository;
 
+import be.garagepoort.mcioc.IocBean;
+import be.garagepoort.mcioc.configuration.ConfigProperty;
+import be.garagepoort.mcsqlmigrations.DatabaseType;
+import be.garagepoort.mcsqlmigrations.SqlConnectionProvider;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import me.junny.dutytoggle.util.FileManager;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-public class MySQLConnectionProvider {
+@IocBean
+public class MySQLConnectionProvider implements SqlConnectionProvider {
 
-    private static MySQLConnectionProvider INSTANCE;
-
-    private final String host;
-    private final String user;
-    private final String database;
-    private final String password;
-    private final int port;
+    @ConfigProperty("database.host")
+    private String host;
+    @ConfigProperty("database.user")
+    private String user;
+    @ConfigProperty("database.database")
+    private String database;
+    @ConfigProperty("database.password")
+    private String password;
+    @ConfigProperty("database.port")
+    private int port;
 
     private HikariDataSource datasource;
 
-    private MySQLConnectionProvider() {
-        YamlConfiguration yamlConfiguration = FileManager.instance().getConfig("config.yml").get();
-        port = yamlConfiguration.getInt("database.port");
-        host = yamlConfiguration.getString("database.host");
-        user = yamlConfiguration.getString("database.user");
-        database = yamlConfiguration.getString("database.database");
-        password = yamlConfiguration.getString("database.password");
-    }
-
-    public static MySQLConnectionProvider instance() {
-        if(INSTANCE == null) {
-            INSTANCE = new MySQLConnectionProvider();
-        }
-        return INSTANCE;
-    }
+    public MySQLConnectionProvider() {}
 
     public DataSource getDatasource() {
         if(datasource == null){
             getDataSource();
         }
         return datasource;
+    }
+
+    @Override
+    public List<String> getMigrationPackages() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public DatabaseType getDatabaseType() {
+        return DatabaseType.MYSQL;
     }
 
     public Connection getConnection() {

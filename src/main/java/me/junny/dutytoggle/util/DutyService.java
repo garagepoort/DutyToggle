@@ -1,5 +1,7 @@
 package me.junny.dutytoggle.util;
 
+import be.garagepoort.mcioc.IocBean;
+import be.garagepoort.mcioc.configuration.ConfigProperty;
 import me.junny.dutytoggle.DutySession;
 import me.junny.dutytoggle.DutyToggle;
 import me.junny.dutytoggle.repository.LuckPermsRepository;
@@ -16,32 +18,45 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class Util {
+@IocBean
+public class DutyService {
 
-    private static final SessionRepository sessionRepository = SessionRepository.instance();
-    private static FileManager fileManager = FileManager.instance();
+    @ConfigProperty("staff-groups")
+    private List<String> staffGroups;
+    @ConfigProperty("mail-players")
+    private List<String> mailPlayers;
+    @ConfigProperty("off-duty-group")
+    private String offDutyGroup;
 
-    public static String color(String string) {
+    private final SessionRepository sessionRepository;
+    private final LuckPermsRepository luckPermsRepository;
+
+    public DutyService(SessionRepository sessionRepository, LuckPermsRepository luckPermsRepository) {
+        this.sessionRepository = sessionRepository;
+        this.luckPermsRepository = luckPermsRepository;
+    }
+
+    public String color(String string) {
         return ChatColor.translateAlternateColorCodes('&', string);
     }
 
-    public static String getMessage(String id) {
-        return color(fileManager.getConfig("config.yml").get().getString("messages." + id));
+    public String getMessage(String id) {
+        return color(DutyToggle.getPlugin().getFileConfigurations().get("config").getString("messages." + id));
     }
 
-    public static User getPlayerAsUser(Player player) {
+    public User getPlayerAsUser(Player player) {
         return DutyToggle.api.getPlayerAdapter(Player.class).getUser(player);
     }
 
-    public static Group getGroup(UUID uuid) {
+    public Group getGroup(UUID uuid) {
         return getGroup(DutyToggle.api.getUserManager().getUser(uuid).getPrimaryGroup());
     }
 
-    public static Group getGroup(String id) {
+    public Group getGroup(String id) {
         return DutyToggle.api.getGroupManager().getGroup(id);
     }
 
-    public static void addGroup(UUID uuid, String group) {
+    public void addGroup(UUID uuid, String group) {
         Player player = Bukkit.getPlayer(uuid);
         if (player == null) {
             throw new RuntimeException("No players found with uuid: [" + uuid + "]");
@@ -50,7 +65,7 @@ public class Util {
         Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command);
     }
 
-    public static void removeGroup(UUID uuid, String group) {
+    public void removeGroup(UUID uuid, String group) {
         Player player = Bukkit.getPlayer(uuid);
         if (player == null) {
             throw new RuntimeException("No players found with uuid: [" + uuid + "]");
@@ -59,74 +74,72 @@ public class Util {
         Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command);
     }
 
-    private static DutySession getSession(OfflinePlayer player) {
+    private DutySession getSession(OfflinePlayer player) {
         return sessionRepository.getSession(player.getUniqueId()).orElse(null);
     }
 
-    public static boolean isOnLeave(OfflinePlayer player) {
+    public boolean isOnLeave(OfflinePlayer player) {
         DutySession session = getSession(player);
 
         if (session == null) return false;
         return session.back != 0L;
     }
 
-    public static boolean isOffDuty(OfflinePlayer player) {
+    public boolean isOffDuty(OfflinePlayer player) {
         DutySession session = getSession(player);
 
         if (session == null) return false;
         return session.back == 0L;
     }
 
-    public static void onDuty(OfflinePlayer player) {
+    public void onDuty(OfflinePlayer player) {
         DutySession session = getSession(player);
         addGroup(player.getUniqueId(), session.groupName);
         sessionRepository.deleteSession(player.getUniqueId());
     }
 
-    public static void offDuty(OfflinePlayer player) {
+    public void offDuty(OfflinePlayer player) {
         Group group = getGroup(player.getUniqueId());
         DutySession dutySession = new DutySession(player, group.getName());
         removeGroup(player.getUniqueId(), group.getName());
-        addGroup(player.getUniqueId(), DutyToggle.offDutyGroup.getName());
+        addGroup(player.getUniqueId(), getGroup(offDutyGroup).getName());
 
         sessionRepository.saveSession(dutySession);
     }
 
-    public static void onLeave(OfflinePlayer player, int days) {
+    public void onLeave(OfflinePlayer player, int days) {
         long daysInMilli = days * 86400000L;
         DutySession dutySession = new DutySession(player, getGroup(player.getUniqueId()).getName(), System.currentTimeMillis() + daysInMilli);
         removeGroup(player.getUniqueId(), getGroup(player.getUniqueId()).getName());
-        addGroup(player.getUniqueId(), DutyToggle.offDutyGroup.getName());
+        addGroup(player.getUniqueId(), getGroup(offDutyGroup).getName());
         sessionRepository.saveSession(dutySession);
         mailPlayers(getMessage("mail-on-leave").replace("%player%", player.getName()));
     }
 
-    public static void offLeave(OfflinePlayer player) {
+    public void offLeave(OfflinePlayer player) {
         DutySession dutySession = sessionRepository.getSession(player.getUniqueId())
-                .orElseThrow(() -> new RuntimeException("No session found for user [" + player.getName() + "]"));
+            .orElseThrow(() -> new RuntimeException("No session found for user [" + player.getName() + "]"));
 
         addGroup(player.getUniqueId(), dutySession.groupName);
         sessionRepository.deleteSession(player.getUniqueId());
         mailPlayers(getMessage("mail-off-leave").replace("%player%", player.getName()));
     }
 
-    public static List<Player> getMailPlayers() {
-        List<String> playerIds = fileManager.getConfig("config.yml").get().getStringList("mail-players");
-
+    public List<Player> getMailPlayers() {
         List<Player> players = new ArrayList<>();
-        playerIds.forEach(it -> players.add(Bukkit.getPlayer(it)));
+        mailPlayers.forEach(it -> players.add(Bukkit.getPlayer(it)));
 
         return players;
     }
 
-    public static void mailPlayers(String msg) {
+    public void mailPlayers(String msg) {
         //This won't work because there is no actual command being executed.
         for (Player player : getMailPlayers()) {
             Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), msg);
         }
     }
 
-    public static boolean isStaff(Player player) {
+    public boolean isStaff(Player player) {
         if (sessionRepository.getSession(player.getUniqueId()).isPresent()) {
             return true;
         }
@@ -134,11 +147,12 @@ public class Util {
         return player.hasPermission("blockstackers.staff");
     }
 
-    public static List<String> getAllStaffUsers() {
-        List<String> groupIds = fileManager.getConfig("config.yml").get().getStringList("staff-groups")
-                .stream().map(g -> "group." + g).collect(Collectors.toList());
+    public List<String> getAllStaffUsers() {
+        List<String> groupIds = staffGroups.stream()
+            .map(g -> "group." + g)
+            .collect(Collectors.toList());
 
         // Search all users for a match
-        return LuckPermsRepository.instance().getAllNamesWithPrimaryGroup(groupIds);
+        return luckPermsRepository.getAllNamesWithPrimaryGroup(groupIds);
     }
 }

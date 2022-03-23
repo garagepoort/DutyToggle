@@ -1,15 +1,24 @@
 package me.junny.dutytoggle.repository;
 
+import be.garagepoort.mcioc.IocBean;
+import be.garagepoort.mcsqlmigrations.SqlConnectionProvider;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
+@IocBean
 public class DatabaseMigrator {
 
-    public static void executeMigrations() {
-        try (Connection sql = MySQLConnectionProvider.instance().getConnection();
+    private final SqlConnectionProvider sqlConnectionProvider;
+
+    public DatabaseMigrator(SqlConnectionProvider sqlConnectionProvider) {
+        this.sqlConnectionProvider = sqlConnectionProvider;
+        executeMigrations();
+    }
+
+    public void executeMigrations() {
+        try (Connection sql = sqlConnectionProvider.getConnection();
              PreparedStatement migrate = sql.prepareStatement("CREATE TABLE IF NOT EXISTS duty_sessions ( " +
                      "ID INT NOT NULL AUTO_INCREMENT, " +
                      "player_uuid VARCHAR(36) NOT NULL, " +

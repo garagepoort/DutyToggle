@@ -39,6 +39,20 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <relocations>
+                                <relocation>
+                                    <pattern>be.garagepoort.mcioc.</pattern>
+                                    <shadedPattern>me.junny.dutytoggle.core.be.garagepoort.mcioc.</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.zaxxer</pattern>
+                                    <shadedPattern>me.junny.dutytoggle.libs.com.zaxxer</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>be.garagepoort.mcsqlmigrations.</pattern>
+                                    <shadedPattern>me.junny.dutytoggle.libs.be.garagepoort.mcsqlmigrations.</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>
@@ -61,6 +75,10 @@
             <id>sonatype</id>
             <url>https://oss.sonatype.org/content/groups/public/</url>
         </repository>
+        <repository>
+            <id>staffplusplus-repo</id>
+            <url>https://nexus.staffplusplus.org/repository/staffplusplus/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -80,6 +98,22 @@
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
             <version>3.4.5</version>
+        </dependency>
+        <dependency>
+            <groupId>be.garagepoort.mcioc</groupId>
+            <artifactId>tubing</artifactId>
+            <version>5.0.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>be.garagepoort.mcsqlmigrations</groupId>
+            <artifactId>mc-sql-migrations</artifactId>
+            <version>1.1.4</version>
         </dependency>
     </dependencies>
 </project>
