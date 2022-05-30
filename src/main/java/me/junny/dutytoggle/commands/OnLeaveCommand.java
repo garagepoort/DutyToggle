@@ -1,6 +1,5 @@
 package me.junny.dutytoggle.commands;
 
-import be.garagepoort.mcioc.IocBean;
 import be.garagepoort.mcioc.IocCommandHandler;
 import me.junny.dutytoggle.util.DutyService;
 import org.bukkit.command.Command;
@@ -8,7 +7,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-@IocBean
 @IocCommandHandler("onleave")
 public class OnLeaveCommand implements CommandExecutor {
     private final DutyService dutyService;

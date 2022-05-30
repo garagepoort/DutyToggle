@@ -1,6 +1,5 @@
 package me.junny.dutytoggle.commands;
 
-import be.garagepoort.mcioc.IocBean;
 import be.garagepoort.mcioc.IocCommandHandler;
 import me.junny.dutytoggle.DutySession;
 import me.junny.dutytoggle.DutyToggle;
@@ -17,7 +16,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@IocBean
 @IocCommandHandler("staffstatus")
 public class StaffStatusCommand implements CommandExecutor {
 
