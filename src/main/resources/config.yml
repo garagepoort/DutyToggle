@@ -10,6 +10,12 @@ messages:
   not-on-leave: "&cYou are not on leave!"
   on-leave: "&eYou are now on leave"
   not-off-leave: "&cYou are not off leave!"
+
+permissions:
+  duty: "dutytoggle.command.duty"
+  leave: "dutytoggle.command.leave"
+  staffstatus: "dutytoggle.command.staffstatus"
+
 off-duty-group: default
 staff-groups:
 - management

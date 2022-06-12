@@ -1,34 +1,36 @@
 package me.junny.dutytoggle.commands;
 
 import be.garagepoort.mcioc.IocCommandHandler;
+import be.garagepoort.mcioc.configuration.ConfigProperty;
 import me.junny.dutytoggle.util.DutyService;
+import me.junny.dutytoggle.util.PermissionHandler;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 @IocCommandHandler("offduty")
-public class OffDutyCommand implements CommandExecutor {
-    private final DutyService dutyService;
+public class OffDutyCommand extends AbstractCommand {
+    @ConfigProperty("permissions.duty")
+    private String permissionDuty;
 
-    public OffDutyCommand(DutyService dutyService) {
+    private final DutyService dutyService;
+    private final PermissionHandler permissionHandler;
+
+    public OffDutyCommand(DutyService dutyService, PermissionHandler permissionHandler) {
         this.dutyService = dutyService;
+        this.permissionHandler = permissionHandler;
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+    public boolean executeCommand(CommandSender sender, Command cmd, String label, String[] args) {
+        permissionHandler.validate(sender, permissionDuty);
         if (sender instanceof Player) {
             Player player = (Player) sender;
-
-            if (dutyService.isStaff(player)) {
-                if (dutyService.isOffDuty(player)) {
-                    sender.sendMessage(dutyService.getMessage("not-on-duty"));
-                } else {
-                    dutyService.offDuty(player);
-                    sender.sendMessage(dutyService.getMessage("off-duty"));
-                }
+            if (dutyService.isOffDuty(player)) {
+                sender.sendMessage(dutyService.getMessage("not-on-duty"));
             } else {
-                sender.sendMessage(dutyService.getMessage("no-permissions"));
+                dutyService.offDuty(player);
+                sender.sendMessage(dutyService.getMessage("off-duty"));
             }
         }
         return true;

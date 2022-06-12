@@ -7,7 +7,6 @@ import me.junny.dutytoggle.DutyToggle;
 import me.junny.dutytoggle.repository.LuckPermsRepository;
 import me.junny.dutytoggle.repository.SessionRepository;
 import net.luckperms.api.model.group.Group;
-import net.luckperms.api.model.user.User;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -42,10 +41,6 @@ public class DutyService {
 
     public String getMessage(String id) {
         return color(DutyToggle.getPlugin().getFileConfigurations().get("config").getString("messages." + id));
-    }
-
-    public User getPlayerAsUser(Player player) {
-        return DutyToggle.api.getPlayerAdapter(Player.class).getUser(player);
     }
 
     public Group getGroup(UUID uuid) {
@@ -137,14 +132,6 @@ public class DutyService {
         for (Player player : getMailPlayers()) {
             Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), msg);
         }
-    }
-
-    public boolean isStaff(Player player) {
-        if (sessionRepository.getSession(player.getUniqueId()).isPresent()) {
-            return true;
-        }
-
-        return player.hasPermission("blockstackers.staff");
     }
 
     public List<String> getAllStaffUsers() {
