@@ -7,14 +7,11 @@ import be.garagepoort.mcsqlmigrations.DatabaseType;
 import be.garagepoort.mcsqlmigrations.SqlConnectionProvider;
 import be.garagepoort.mcsqlmigrations.helpers.QueryBuilderFactory;
 import me.junny.dutytoggle.bungee.BungeeClient;
-import net.luckperms.api.LuckPerms;
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.RegisteredServiceProvider;
 
 @TubingConfiguration
 public final class DutyToggle extends TubingPlugin {
     public static DutyToggle plugin;
-    public static LuckPerms api;
 
     @Override
     protected void beforeEnable() {
@@ -23,8 +20,6 @@ public final class DutyToggle extends TubingPlugin {
 
     @Override
     protected void enable() {
-        RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
-        if (provider != null) api = provider.getProvider();
         Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(DutyToggle.plugin, BungeeClient.BUNGEE_CORD_CHANNEL);
         getLogger().info("DutyToggle enabled");
     }

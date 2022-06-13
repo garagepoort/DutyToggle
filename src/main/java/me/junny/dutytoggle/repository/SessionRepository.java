@@ -8,6 +8,7 @@ import org.bukkit.OfflinePlayer;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -31,7 +32,7 @@ public class SessionRepository {
                 insert -> {
                     insert.setString(1, dutySession.player.getUniqueId().toString());
                     insert.setString(2, dutySession.player.getName());
-                    insert.setString(3, dutySession.groupName);
+                    insert.setString(3, String.join(";", dutySession.groups));
                     insert.setLong(4, dutySession.back);
                 });
     }
@@ -52,7 +53,7 @@ public class SessionRepository {
 
     private DutySession buildSession(ResultSet rs) throws SQLException {
         OfflinePlayer player = Bukkit.getOfflinePlayer(UUID.fromString(rs.getString("player_uuid")));
-        return new DutySession(rs.getInt("ID"), player, rs.getString("group_name"), rs.getLong("back"));
+        return new DutySession(rs.getInt("ID"), player, Arrays.asList(rs.getString("group_name").split(";")), rs.getLong("back"));
     }
 
     public void deleteSession(UUID playerUuid) {

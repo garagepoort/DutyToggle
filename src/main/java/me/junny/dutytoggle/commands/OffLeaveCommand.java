@@ -2,8 +2,10 @@ package me.junny.dutytoggle.commands;
 
 import be.garagepoort.mcioc.IocCommandHandler;
 import be.garagepoort.mcioc.configuration.ConfigProperty;
+import me.junny.dutytoggle.DutyToggle;
 import me.junny.dutytoggle.util.DutyService;
 import me.junny.dutytoggle.util.PermissionHandler;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -26,13 +28,14 @@ public class OffLeaveCommand extends AbstractCommand {
         permissionHandler.validate(sender, permissionLeave);
         if (sender instanceof Player) {
             Player player = (Player) sender;
-
-            if (dutyService.isOnLeave(player)) {
-                dutyService.offLeave(player);
-                sender.sendMessage(dutyService.getMessage("off-leave"));
-            } else {
-                sender.sendMessage(dutyService.getMessage("not-on-leave"));
-            }
+            Bukkit.getScheduler().runTaskAsynchronously(DutyToggle.plugin, () -> {
+                if (dutyService.isOnLeave(player)) {
+                    dutyService.offLeave(player);
+                    sender.sendMessage(dutyService.getMessage("off-leave"));
+                } else {
+                    sender.sendMessage(dutyService.getMessage("not-on-leave"));
+                }
+            });
         }
         return true;
     }

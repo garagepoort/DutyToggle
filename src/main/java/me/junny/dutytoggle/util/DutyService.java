@@ -6,7 +6,6 @@ import me.junny.dutytoggle.DutySession;
 import me.junny.dutytoggle.DutyToggle;
 import me.junny.dutytoggle.repository.LuckPermsRepository;
 import me.junny.dutytoggle.repository.SessionRepository;
-import net.luckperms.api.model.group.Group;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -24,8 +23,6 @@ public class DutyService {
     private List<String> staffGroups;
     @ConfigProperty("mail-players")
     private List<String> mailPlayers;
-    @ConfigProperty("off-duty-group")
-    private String offDutyGroup;
 
     private final SessionRepository sessionRepository;
     private final LuckPermsRepository luckPermsRepository;
@@ -43,80 +40,39 @@ public class DutyService {
         return color(DutyToggle.getPlugin().getFileConfigurations().get("config").getString("messages." + id));
     }
 
-    public Group getGroup(UUID uuid) {
-        return getGroup(DutyToggle.api.getUserManager().getUser(uuid).getPrimaryGroup());
-    }
-
-    public Group getGroup(String id) {
-        return DutyToggle.api.getGroupManager().getGroup(id);
-    }
-
-    public void addGroup(UUID uuid, String group) {
-        Player player = Bukkit.getPlayer(uuid);
-        if (player == null) {
-            throw new RuntimeException("No players found with uuid: [" + uuid + "]");
-        }
-        String command = String.format("lp user %s parent add %s", player.getName(), group);
-        Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command);
-    }
-
-    public void removeGroup(UUID uuid, String group) {
-        Player player = Bukkit.getPlayer(uuid);
-        if (player == null) {
-            throw new RuntimeException("No players found with uuid: [" + uuid + "]");
-        }
-        String command = String.format("lp user %s parent remove %s", player.getName(), group);
-        Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command);
-    }
-
-    private DutySession getSession(OfflinePlayer player) {
-        return sessionRepository.getSession(player.getUniqueId()).orElse(null);
-    }
-
     public boolean isOnLeave(OfflinePlayer player) {
-        DutySession session = getSession(player);
-
-        if (session == null) return false;
-        return session.back != 0L;
+        return sessionRepository.getSession(player.getUniqueId())
+            .filter(dutySession -> dutySession.back != 0L)
+            .isPresent();
     }
 
     public boolean isOffDuty(OfflinePlayer player) {
-        DutySession session = getSession(player);
-
-        if (session == null) return false;
-        return session.back == 0L;
+        return sessionRepository.getSession(player.getUniqueId())
+            .filter(dutySession -> dutySession.back == 0L)
+            .isPresent();
     }
 
     public void onDuty(OfflinePlayer player) {
         DutySession session = getSession(player);
-        addGroup(player.getUniqueId(), session.groupName);
+        addGroups(player.getUniqueId(), session.groups);
         sessionRepository.deleteSession(player.getUniqueId());
     }
 
-    public void offDuty(OfflinePlayer player) {
-        Group group = getGroup(player.getUniqueId());
-        DutySession dutySession = new DutySession(player, group.getName());
-        removeGroup(player.getUniqueId(), group.getName());
-        addGroup(player.getUniqueId(), getGroup(offDutyGroup).getName());
-
+    public void offDuty(OfflinePlayer player, int days) {
+        long daysInMilli = days * 86400000L;
+        List<String> luckpermGroups = luckPermsRepository.getStaffGroupsForPlayer(player.getUniqueId(), staffGroups);
+        DutySession dutySession = new DutySession(player, luckpermGroups, daysInMilli);
+        removeGroups(player.getUniqueId(), luckpermGroups);
         sessionRepository.saveSession(dutySession);
     }
 
     public void onLeave(OfflinePlayer player, int days) {
-        long daysInMilli = days * 86400000L;
-        DutySession dutySession = new DutySession(player, getGroup(player.getUniqueId()).getName(), System.currentTimeMillis() + daysInMilli);
-        removeGroup(player.getUniqueId(), getGroup(player.getUniqueId()).getName());
-        addGroup(player.getUniqueId(), getGroup(offDutyGroup).getName());
-        sessionRepository.saveSession(dutySession);
+        offDuty(player, days);
         mailPlayers(getMessage("mail-on-leave").replace("%player%", player.getName()));
     }
 
     public void offLeave(OfflinePlayer player) {
-        DutySession dutySession = sessionRepository.getSession(player.getUniqueId())
-            .orElseThrow(() -> new RuntimeException("No session found for user [" + player.getName() + "]"));
-
-        addGroup(player.getUniqueId(), dutySession.groupName);
-        sessionRepository.deleteSession(player.getUniqueId());
+        onDuty(player);
         mailPlayers(getMessage("mail-off-leave").replace("%player%", player.getName()));
     }
 
@@ -127,7 +83,7 @@ public class DutyService {
         return players;
     }
 
-    public void mailPlayers(String msg) {
+    private void mailPlayers(String msg) {
         //This won't work because there is no actual command being executed.
         for (Player player : getMailPlayers()) {
             Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), msg);
@@ -142,4 +98,30 @@ public class DutyService {
         // Search all users for a match
         return luckPermsRepository.getAllNamesWithPrimaryGroup(groupIds);
     }
+
+    private void addGroups(UUID uuid, List<String> groups) {
+        Player player = Bukkit.getPlayer(uuid);
+        if (player == null) {
+            throw new RuntimeException("No players found with uuid: [" + uuid + "]");
+        }
+        groups.stream()
+            .map(staffGroup -> String.format("lp user %s parent add %s", player.getName(), staffGroup))
+            .forEach(command -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command));
+    }
+
+    private void removeGroups(UUID uuid, List<String> groups) {
+        Player player = Bukkit.getPlayer(uuid);
+        if (player == null) {
+            throw new RuntimeException("No players found with uuid: [" + uuid + "]");
+        }
+        groups.stream()
+            .map(group -> String.format("lp user %s parent remove %s", player.getName(), group))
+            .forEach(command -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command));
+    }
+
+    private DutySession getSession(OfflinePlayer player) {
+        return sessionRepository.getSession(player.getUniqueId())
+            .orElseThrow(() -> new RuntimeException("No session found for user [" + player.getName() + "]"));
+    }
+
 }
