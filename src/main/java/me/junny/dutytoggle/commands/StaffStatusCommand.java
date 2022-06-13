@@ -8,7 +8,6 @@ import me.junny.dutytoggle.bungee.BungeeClient;
 import me.junny.dutytoggle.repository.SessionRepository;
 import me.junny.dutytoggle.util.DutyService;
 import me.junny.dutytoggle.util.PermissionHandler;
-import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -16,6 +15,8 @@ import org.bukkit.command.CommandSender;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.bukkit.Bukkit.getScheduler;
 
 @IocCommandHandler("staffstatus")
 public class StaffStatusCommand extends AbstractCommand {
@@ -38,7 +39,7 @@ public class StaffStatusCommand extends AbstractCommand {
         permissionHandler.validate(sender, permissionStaffStatus);
 
         bungeeClient.getPlayers(sender, (allPlayers) ->
-            Bukkit.getScheduler().runTaskAsynchronously(DutyToggle.plugin, () -> {
+            getScheduler().runTaskAsynchronously(DutyToggle.plugin, () -> {
                 List<String> staffNames = dutyService.getAllStaffUsers();
                 List<DutySession> sessions = sessionRepository.getAllSessions();
 

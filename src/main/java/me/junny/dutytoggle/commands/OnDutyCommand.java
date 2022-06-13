@@ -5,10 +5,11 @@ import be.garagepoort.mcioc.configuration.ConfigProperty;
 import me.junny.dutytoggle.DutyToggle;
 import me.junny.dutytoggle.util.DutyService;
 import me.junny.dutytoggle.util.PermissionHandler;
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import static org.bukkit.Bukkit.getScheduler;
 
 @IocCommandHandler("onduty")
 public class OnDutyCommand extends AbstractCommand {
@@ -29,7 +30,7 @@ public class OnDutyCommand extends AbstractCommand {
         if (sender instanceof Player) {
             Player player = (Player) sender;
 
-            Bukkit.getScheduler().runTaskAsynchronously(DutyToggle.plugin, () -> {
+            getScheduler().runTaskAsynchronously(DutyToggle.plugin, () -> {
                 if (dutyService.isOffDuty(player)) {
                     dutyService.onDuty(player);
                     sender.sendMessage(dutyService.getMessage("on-duty"));

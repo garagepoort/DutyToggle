@@ -9,12 +9,15 @@ import me.junny.dutytoggle.repository.SessionRepository;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static org.bukkit.Bukkit.getScheduler;
 
 @IocBean
 public class DutyService {
@@ -84,10 +87,7 @@ public class DutyService {
     }
 
     private void mailPlayers(String msg) {
-        //This won't work because there is no actual command being executed.
-        for (Player player : getMailPlayers()) {
-            Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), msg);
-        }
+        runTaskLater(Bukkit.getConsoleSender(), () -> getMailPlayers().forEach(player -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "mail " + player.getName() + " " + msg)));
     }
 
     public List<String> getAllStaffUsers() {
@@ -104,9 +104,10 @@ public class DutyService {
         if (player == null) {
             throw new RuntimeException("No players found with uuid: [" + uuid + "]");
         }
-        groups.stream()
+
+        runTaskLater(Bukkit.getConsoleSender(), () -> groups.stream()
             .map(staffGroup -> String.format("lp user %s parent add %s", player.getName(), staffGroup))
-            .forEach(command -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command));
+            .forEach(command -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command)));
     }
 
     private void removeGroups(UUID uuid, List<String> groups) {
@@ -114,9 +115,9 @@ public class DutyService {
         if (player == null) {
             throw new RuntimeException("No players found with uuid: [" + uuid + "]");
         }
-        groups.stream()
+        runTaskLater(Bukkit.getConsoleSender(), () -> groups.stream()
             .map(group -> String.format("lp user %s parent remove %s", player.getName(), group))
-            .forEach(command -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command));
+            .forEach(command -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command)));
     }
 
     private DutySession getSession(OfflinePlayer player) {
@@ -124,4 +125,13 @@ public class DutyService {
             .orElseThrow(() -> new RuntimeException("No session found for user [" + player.getName() + "]"));
     }
 
+    public void runTaskLater(CommandSender sender, Runnable runnable) {
+        getScheduler().runTaskLater(DutyToggle.plugin, () -> {
+            try {
+                runnable.run();
+            } catch (DutyToggleException e) {
+                sender.sendMessage(e.getMessage());
+            }
+        }, 1);
+    }
 }

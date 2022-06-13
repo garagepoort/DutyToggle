@@ -5,10 +5,11 @@ import be.garagepoort.mcioc.configuration.ConfigProperty;
 import me.junny.dutytoggle.DutyToggle;
 import me.junny.dutytoggle.util.DutyService;
 import me.junny.dutytoggle.util.PermissionHandler;
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import static org.bukkit.Bukkit.getScheduler;
 
 @IocCommandHandler("onleave")
 public class OnLeaveCommand extends AbstractCommand {
@@ -28,7 +29,7 @@ public class OnLeaveCommand extends AbstractCommand {
         permissionHandler.validate(sender, permissionLeave);
         if (sender instanceof Player) {
             Player player = (Player) sender;
-            Bukkit.getScheduler().runTaskAsynchronously(DutyToggle.plugin, () -> {
+            getScheduler().runTaskAsynchronously(DutyToggle.plugin, () -> {
                 if (args.length == 1) {
                     if (dutyService.isOnLeave(player)) {
                         sender.sendMessage(dutyService.getMessage("not-off-leave"));
