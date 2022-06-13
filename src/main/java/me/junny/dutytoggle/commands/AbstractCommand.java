@@ -2,6 +2,7 @@ package me.junny.dutytoggle.commands;
 
 import be.garagepoort.mcioc.configuration.ConfigProperty;
 import me.junny.dutytoggle.util.DutyToggleException;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -16,7 +17,7 @@ public abstract class AbstractCommand implements CommandExecutor {
         try {
             return executeCommand(commandSender, command, s, strings);
         } catch (DutyToggleException e) {
-            commandSender.sendMessage(noPermissions);
+            commandSender.sendMessage(ChatColor.translateAlternateColorCodes('&', noPermissions));
             return false;
         }
     }
