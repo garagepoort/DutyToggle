@@ -2,7 +2,7 @@ package me.junny.dutytoggle;
 
 import be.garagepoort.mcioc.IocBeanProvider;
 import be.garagepoort.mcioc.TubingConfiguration;
-import be.garagepoort.mcioc.TubingPlugin;
+import be.garagepoort.mcioc.tubingbukkit.TubingBukkitPlugin;
 import be.garagepoort.mcsqlmigrations.DatabaseType;
 import be.garagepoort.mcsqlmigrations.SqlConnectionProvider;
 import be.garagepoort.mcsqlmigrations.helpers.QueryBuilderFactory;
@@ -10,7 +10,7 @@ import me.junny.dutytoggle.bungee.BungeeClient;
 import org.bukkit.Bukkit;
 
 @TubingConfiguration
-public final class DutyToggle extends TubingPlugin {
+public final class DutyToggle extends TubingBukkitPlugin {
     public static DutyToggle plugin;
 
     @Override

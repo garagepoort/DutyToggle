@@ -2,6 +2,7 @@ package me.junny.dutytoggle.util;
 
 import be.garagepoort.mcioc.IocBean;
 import be.garagepoort.mcioc.configuration.ConfigProperty;
+import be.garagepoort.mcioc.configuration.ConfigurationLoader;
 import me.junny.dutytoggle.DutySession;
 import me.junny.dutytoggle.DutyToggle;
 import me.junny.dutytoggle.repository.LuckPermsRepository;
@@ -29,10 +30,12 @@ public class DutyService {
 
     private final SessionRepository sessionRepository;
     private final LuckPermsRepository luckPermsRepository;
+    private final ConfigurationLoader configurationLoader;
 
-    public DutyService(SessionRepository sessionRepository, LuckPermsRepository luckPermsRepository) {
+    public DutyService(SessionRepository sessionRepository, LuckPermsRepository luckPermsRepository, ConfigurationLoader configurationLoader) {
         this.sessionRepository = sessionRepository;
         this.luckPermsRepository = luckPermsRepository;
+        this.configurationLoader = configurationLoader;
     }
 
     public String color(String string) {
@@ -40,7 +43,7 @@ public class DutyService {
     }
 
     public String getMessage(String id) {
-        return color(DutyToggle.getPlugin().getFileConfigurations().get("config").getString("messages." + id));
+        return color(configurationLoader.getConfigurationFiles().get("config").getString("messages." + id));
     }
 
     public boolean isOnLeave(OfflinePlayer player) {

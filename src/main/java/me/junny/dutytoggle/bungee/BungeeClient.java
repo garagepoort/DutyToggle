@@ -1,7 +1,7 @@
 package me.junny.dutytoggle.bungee;
 
 import be.garagepoort.mcioc.IocBean;
-import be.garagepoort.mcioc.IocMessageListener;
+import be.garagepoort.mcioc.tubingbukkit.annotations.IocBukkitMessageListener;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 import static com.google.common.io.ByteStreams.newDataOutput;
 
 @IocBean
-@IocMessageListener(channel = BungeeClient.BUNGEE_CORD_CHANNEL)
+@IocBukkitMessageListener(channel = BungeeClient.BUNGEE_CORD_CHANNEL)
 public class BungeeClient implements PluginMessageListener {
 
     public static final String BUNGEE_CORD_CHANNEL = "BungeeCord";

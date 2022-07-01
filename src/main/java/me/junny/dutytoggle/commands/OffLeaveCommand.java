@@ -1,7 +1,7 @@
 package me.junny.dutytoggle.commands;
 
-import be.garagepoort.mcioc.IocCommandHandler;
 import be.garagepoort.mcioc.configuration.ConfigProperty;
+import be.garagepoort.mcioc.tubingbukkit.annotations.IocBukkitCommandHandler;
 import me.junny.dutytoggle.DutyToggle;
 import me.junny.dutytoggle.util.DutyService;
 import me.junny.dutytoggle.util.PermissionHandler;
@@ -11,7 +11,7 @@ import org.bukkit.entity.Player;
 
 import static org.bukkit.Bukkit.getScheduler;
 
-@IocCommandHandler("offleave")
+@IocBukkitCommandHandler("offleave")
 public class OffLeaveCommand extends AbstractCommand {
     @ConfigProperty("permissions.leave")
     private String permissionLeave;

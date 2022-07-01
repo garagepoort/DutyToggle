@@ -1,6 +1,6 @@
 package me.junny.dutytoggle.commands;
 
-import be.garagepoort.mcioc.IocCommandHandler;
+import be.garagepoort.mcioc.tubingbukkit.annotations.IocBukkitCommandHandler;
 import be.garagepoort.mcioc.configuration.ConfigProperty;
 import me.junny.dutytoggle.DutySession;
 import me.junny.dutytoggle.DutyToggle;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 import static org.bukkit.Bukkit.getScheduler;
 
-@IocCommandHandler("staffstatus")
+@IocBukkitCommandHandler("staffstatus")
 public class StaffStatusCommand extends AbstractCommand {
     @ConfigProperty("permissions.staffstatus")
     private String permissionStaffStatus;

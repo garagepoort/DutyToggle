@@ -10,8 +10,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.List;
 
 @IocBean
 public class MySQLConnectionProvider implements SqlConnectionProvider {
@@ -36,11 +34,6 @@ public class MySQLConnectionProvider implements SqlConnectionProvider {
             getDataSource();
         }
         return datasource;
-    }
-
-    @Override
-    public List<String> getMigrationPackages() {
-        return Collections.emptyList();
     }
 
     @Override
